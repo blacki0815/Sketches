@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skizze — Gemeinsam zeichnen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #1a1a18;
+    --paper: #f5f0e8;
+    --paper-dark: #ede8dc;
+    --accent: #c84b2f;
+    --accent2: #2f6bc8;
+    --warm-mid: #8a7f6e;
+    --panel-w: 72px;
+    --top-h: 52px;
+    --radius: 4px;
+    --shadow: 0 2px 12px rgba(26,26,24,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: var(--paper);
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    height: var(--top-h);
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  #topbar .logo {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 22px;
+    color: var(--paper);
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+
+  #topbar .sep { width: 1px; height: 24px; background: #3a3a38; flex-shrink: 0; }
+
+  #board-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  #board-name {
+    background: none;
+    border: none;
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    transition: background 0.15s;
+    max-width: 220px;
+  }
+  #board-name:hover, #board-name:focus {
+    background: rgba(255,255,255,0.08);
+  }
+
+  #save-status {
+    font-size: 11px;
+    color: var(--warm-mid);
+    flex-shrink: 0;
+  }
+  #save-status.saved { color: #6aaa64; }
+  #save-status.saving { color: #f0c040; }
+  #save-status.error { color: var(--accent); }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  #user-count {
+    font-size: 11px;
+    color: var(--paper);
+    background: rgba(255,255,255,0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #user-count::before {
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #6aaa64;
+    display: inline-block;
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%,100% { opacity:1; } 50% { opacity:0.4; }
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 7px 14px;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-ghost {
+    background: rgba(255,255,255,0.1);
+    color: var(--paper);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.18); }
+  .btn-accent {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-accent:hover { opacity: 0.88; }
+
+  /* ── MAIN LAYOUT ── */
+  #main {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── LEFT TOOLBAR ── */
+  #toolbar {
+    width: var(--panel-w);
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 0;
+    gap: 4px;
+    z-index: 50;
+    flex-shrink: 0;
+  }
+
+  .tool-btn {
+    width: 44px; height: 44px;
+    border: none;
+    background: none;
+    color: var(--warm-mid);
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 3px;
+    transition: background 0.12s, color 0.12s;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+  .tool-btn:hover { background: rgba(255,255,255,0.08); color: var(--paper); }
+  .tool-btn.active { background: var(--accent); color: #fff; }
+  .tool-btn svg { width: 20px; height: 20px; }
+
+  .toolbar-sep {
+    width: 32px; height: 1px;
+    background: #2e2e2c;
+    margin: 6px 0;
+  }
+
+  /* Size slider */
+  #size-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+  }
+  #size-wrap label { font-size: 9px; color: var(--warm-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+  #size-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    writing-mode: vertical-lr;
+    direction: rtl;
+    width: 6px;
+    height: 80px;
+    background: #2e2e2c;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+  }
+  #size-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--paper);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Color swatches */
+  #color-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+  }
+  #color-section label { font-size: 9px; color: var(--warm-mid); text-transform: uppercase; letter-spacing: 0.05em; }
+  #swatches {
+    display: grid;
+    grid-template-columns: repeat(2, 22px);
+    gap: 4px;
+  }
+  .swatch {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.12s, border-color 0.12s;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.active { border-color: var(--paper); }
+
+  #color-picker-wrap {
+    position: relative;
+    width: 22px; height: 22px;
+    cursor: pointer;
+  }
+  #color-picker {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+  .swatch-custom {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 2px dashed var(--warm-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warm-mid);
+    font-size: 14px;
+    font-weight: 300;
+    pointer-events: none;
+    transition: border-color 0.12s, color 0.12s;
+  }
+  #color-picker-wrap:hover .swatch-custom { border-color: var(--paper); color: var(--paper); }
+
+  /* ── CANVAS AREA ── */
+  #canvas-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 24px, rgba(139,127,110,0.15) 24px, rgba(139,127,110,0.15) 25px),
+      repeating-linear-gradient(90deg, transparent, transparent 24px, rgba(139,127,110,0.15) 24px, rgba(139,127,110,0.15) 25px),
+      var(--paper);
+  }
+
+  #canvas { display: block; cursor: crosshair; touch-action: none; }
+
+  /* Remote cursors */
+  .remote-cursor {
+    position: absolute;
+    pointer-events: none;
+    z-index: 20;
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    transition: left 0.04s linear, top 0.04s linear;
+  }
+  .remote-cursor svg { width: 18px; height: 18px; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3)); }
+  .remote-cursor-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: #fff;
+    white-space: nowrap;
+    margin-top: 14px;
+    opacity: 0.9;
+  }
+
+  /* Text input overlay */
+  #text-input-overlay {
+    position: absolute;
+    display: none;
+    z-index: 30;
+  }
+  #text-input-field {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    border: 2px solid var(--accent2);
+    outline: none;
+    background: transparent;
+    padding: 2px 6px;
+    min-width: 120px;
+    color: var(--ink);
+    border-radius: 2px;
+  }
+
+  /* ── BOARDS PANEL ── */
+  #boards-panel {
+    width: 220px;
+    background: var(--paper-dark);
+    border-left: 1px solid rgba(139,127,110,0.25);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.25s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  #boards-panel.collapsed { width: 0; border: none; }
+
+  #boards-header {
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid rgba(139,127,110,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  #boards-header h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--warm-mid);
+    font-weight: 500;
+  }
+
+  #new-board-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: opacity 0.15s;
+  }
+  #new-board-btn:hover { opacity: 0.8; }
+
+  #boards-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  #boards-list::-webkit-scrollbar { width: 4px; }
+  #boards-list::-webkit-scrollbar-thumb { background: rgba(139,127,110,0.3); border-radius: 2px; }
+
+  .board-item {
+    padding: 9px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .board-item:hover { background: rgba(139,127,110,0.15); }
+  .board-item.active { background: rgba(139,127,110,0.25); }
+
+  .board-item-name {
+    font-size: 12px;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+  .board-item-time { font-size: 10px; color: var(--warm-mid); flex-shrink: 0; }
+
+  .board-item-del {
+    width: 20px; height: 20px;
+    border: none; background: none;
+    color: var(--warm-mid);
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.12s;
+    flex-shrink: 0;
+  }
+  .board-item:hover .board-item-del { opacity: 1; }
+  .board-item-del:hover { color: var(--accent); }
+
+  /* ── SETUP MODAL ── */
+  #setup-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,24,0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  #setup-box {
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 36px 40px;
+    max-width: 480px;
+    width: calc(100% - 40px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  }
+
+  #setup-box h1 {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 32px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  #setup-box p {
+    font-size: 12px;
+    color: var(--warm-mid);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+  #setup-box label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--warm-mid);
+    margin-bottom: 6px;
+  }
+  #setup-box input, #setup-box textarea {
+    width: 100%;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(139,127,110,0.4);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    margin-bottom: 18px;
+  }
+  #setup-box textarea { height: 80px; resize: vertical; font-size: 11px; }
+  #setup-box input:focus, #setup-box textarea:focus { border-color: var(--accent2); }
+
+  #setup-box .hint {
+    font-size: 11px;
+    color: var(--warm-mid);
+    background: rgba(139,127,110,0.1);
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    margin-bottom: 18px;
+    line-height: 1.7;
+  }
+  #setup-box .hint a { color: var(--accent2); text-decoration: none; }
+  #setup-box .hint a:hover { text-decoration: underline; }
+  #setup-box .hint code {
+    background: rgba(139,127,110,0.2);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10px;
+  }
+
+  #start-btn {
+    width: 100%;
+    padding: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  #start-btn:hover { opacity: 0.85; }
+  #start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #setup-error {
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 300;
+    pointer-events: none;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ── SETUP MODAL ── -->
+<div id="setup-modal">
+  <div id="setup-box">
+    <h1>Skizze</h1>
+    <p>Echtzeit-Zeichentool für mehrere Personen. Gib deine Firebase-Konfiguration ein, um zu starten.</p>
+
+    <div class="hint">
+      <strong>Firebase einrichten (kostenlos):</strong><br>
+      1. <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Neues Projekt erstellen<br>
+      2. <em>Realtime Database</em> → Erstellen → <strong>Testmodus</strong> wählen<br>
+      3. <em>Projekteinstellungen</em> → Web-App hinzufügen → Config kopieren<br>
+      4. Die <code>databaseURL</code> sieht aus wie: <code>https://xxx.firebaseio.com</code>
+    </div>
+
+    <label>Firebase databaseURL</label>
+    <input id="cfg-dburl" type="url" placeholder="https://mein-projekt-default-rtdb.firebaseio.com" />
+
+    <label>Firebase API Key</label>
+    <input id="cfg-apikey" type="text" placeholder="AIzaSy..." />
+
+    <label>Firebase Project ID</label>
+    <input id="cfg-projectid" type="text" placeholder="mein-projekt" />
+
+    <label>Dein Name</label>
+    <input id="cfg-username" type="text" placeholder="z.B. Anna" maxlength="20" />
+
+    <button id="start-btn" onclick="startApp()">→ Loslegen</button>
+    <div id="setup-error"></div>
+  </div>
+</div>
+
+<!-- ── TOP BAR ── -->
+<div id="topbar">
+  <div class="logo">Skizze</div>
+  <div class="sep"></div>
+  <div id="board-name-wrap">
+    <input id="board-name" type="text" value="Unbenanntes Board" maxlength="40" />
+    <span id="save-status">—</span>
+  </div>
+  <div class="topbar-right">
+    <span id="user-count">1 aktiv</span>
+    <button class="btn btn-ghost" onclick="clearCanvas()" title="Canvas leeren">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 5l10 10M15 5L5 15"/><circle cx="10" cy="10" r="8"/></svg>
+      Leeren
+    </button>
+    <button class="btn btn-accent" onclick="exportPNG()">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 13V4M6 10l4 4 4-4M4 16h12"/></svg>
+      PNG
+    </button>
+    <button class="btn btn-ghost" onclick="toggleBoards()" title="Boards">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="6" height="12" rx="1"/><rect x="11" y="4" width="6" height="5" rx="1"/><rect x="11" y="11" width="6" height="5" rx="1"/></svg>
+      Boards
+    </button>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div id="main">
+
+  <!-- LEFT TOOLBAR -->
+  <div id="toolbar">
+    <button class="tool-btn active" id="tool-pen" onclick="setTool('pen')" title="Stift">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17l4-1 9-9-3-3-9 9-1 4z"/><path d="M13 4l3 3"/></svg>
+      Stift
+    </button>
+    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')" title="Radiergummi">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="9" width="14" height="8" rx="1"/><path d="M7 9V6a3 3 0 016 0v3"/></svg>
+      Gummi
+    </button>
+    <button class="tool-btn" id="tool-text" onclick="setTool('text')" title="Text">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h12M10 6v10M7 16h6"/></svg>
+      Text
+    </button>
+
+    <div class="toolbar-sep"></div>
+
+    <div id="size-wrap">
+      <label>Größe</label>
+      <input type="range" id="size-slider" min="1" max="60" value="4" oninput="updateSize(this.value)" />
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <div id="color-section">
+      <label>Farbe</label>
+      <div id="swatches">
+        <div class="swatch active" style="background:#1a1a18" onclick="setColor('#1a1a18')"></div>
+        <div class="swatch" style="background:#c84b2f" onclick="setColor('#c84b2f')"></div>
+        <div class="swatch" style="background:#2f6bc8" onclick="setColor('#2f6bc8')"></div>
+        <div class="swatch" style="background:#2fa85c" onclick="setColor('#2fa85c')"></div>
+        <div class="swatch" style="background:#f0c040" onclick="setColor('#f0c040')"></div>
+        <div class="swatch" style="background:#9b5de5" onclick="setColor('#9b5de5')"></div>
+        <div class="swatch" style="background:#f5f0e8" style="border:2px solid rgba(139,127,110,0.3)" onclick="setColor('#f5f0e8')"></div>
+        <div id="color-picker-wrap" title="Eigene Farbe">
+          <input type="color" id="color-picker" oninput="setColor(this.value)" />
+          <div class="swatch-custom">+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANVAS -->
+  <div id="canvas-wrap">
+    <canvas id="canvas"></canvas>
+    <div id="text-input-overlay">
+      <input type="text" id="text-input-field" placeholder="Text eingeben…" />
+    </div>
+  </div>
+
+  <!-- BOARDS PANEL -->
+  <div id="boards-panel">
+    <div id="boards-header">
+      <h3>Boards</h3>
+      <button id="new-board-btn" onclick="newBoard()">+ Neu</button>
+    </div>
+    <div id="boards-list"></div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getDatabase, ref, set, onValue, push, onChildAdded,
+  onChildChanged, onChildRemoved, remove, get, off, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let db, app;
+let currentUser = { id: null, name: 'Anonym', color: '#2f6bc8' };
+let currentBoardId = null;
+let currentTool = 'pen';
+let currentColor = '#1a1a18';
+let currentSize = 4;
+
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let strokeId = null;
+let strokeBuffer = [];
+let flushTimer = null;
+
+const USER_COLORS = ['#c84b2f','#2f6bc8','#2fa85c','#9b5de5','#f0c040','#e55d8a','#3bbfbe'];
+let remoteCursors = {};
+let activeUsers = {};
+let presenceRef = null;
+let cursorRef = null;
+let drawingsRef = null;
+let boardsListeners = {};
+
+// ─────────────────────────────────────────────
+// CANVAS SETUP
+// ─────────────────────────────────────────────
+const wrap = document.getElementById('canvas-wrap');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  canvas.width = wrap.offsetWidth;
+  canvas.height = wrap.offsetHeight;
+  ctx.putImageData(imageData, 0, 0);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+}
+window.addEventListener('resize', resizeCanvas);
+
+// ─────────────────────────────────────────────
+// TOOL & COLOR
+// ─────────────────────────────────────────────
+window.setTool = function(t) {
+  currentTool = t;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tool-' + t).classList.add('active');
+  canvas.style.cursor = t === 'eraser' ? 'cell' : t === 'text' ? 'text' : 'crosshair';
+};
+
+window.setColor = function(c) {
+  currentColor = c;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  const match = [...document.querySelectorAll('.swatch')].find(s => s.style.background === c || s.style.backgroundColor === c);
+  if (match) match.classList.add('active');
+};
+
+window.updateSize = function(v) { currentSize = parseInt(v); };
+
+// ─────────────────────────────────────────────
+// DRAWING — LOCAL
+// ─────────────────────────────────────────────
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+}
+
+function applySegment(x0, y0, x1, y1, color, size, tool) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  if (tool === 'eraser') {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineWidth = size * 4;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = size;
+  }
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function onPointerDown(e) {
+  if (currentTool === 'text') { handleTextClick(e); return; }
+  isDrawing = true;
+  const { x, y } = getPos(e);
+  lastX = x; lastY = y;
+  strokeId = Date.now() + '_' + currentUser.id;
+  strokeBuffer = [{ x0: x, y0: y, x1: x, y1: y }];
+  applySegment(x, y, x, y, currentColor, currentSize, currentTool);
+}
+
+function onPointerMove(e) {
+  const { x, y } = getPos(e);
+
+  // Send cursor position (throttled by flushTimer already)
+  if (cursorRef) {
+    set(cursorRef, { x: Math.round(x), y: Math.round(y), name: currentUser.name, color: currentUser.color, t: Date.now() });
+  }
+
+  if (!isDrawing) return;
+  applySegment(lastX, lastY, x, y, currentColor, currentSize, currentTool);
+  strokeBuffer.push({ x0: lastX, y0: lastY, x1: x, y1: y });
+  lastX = x; lastY = y;
+
+  // Flush to Firebase frequently
+  if (!flushTimer) {
+    flushTimer = setTimeout(() => { flushStroke(); flushTimer = null; }, 40);
+  }
+}
+
+function onPointerUp() {
+  if (!isDrawing) return;
+  isDrawing = false;
+  flushStroke(true);
+}
+
+function flushStroke(final = false) {
+  if (!drawingsRef || strokeBuffer.length === 0) return;
+  const data = {
+    uid: currentUser.id,
+    color: currentColor,
+    size: currentSize,
+    tool: currentTool,
+    segs: strokeBuffer,
+    t: Date.now(),
+    final: final
+  };
+  set(ref(db, `boards/${currentBoardId}/strokes/${strokeId}`), data);
+  strokeBuffer = [];
+  if (final) { strokeId = null; scheduleAutoSave(); }
+}
+
+canvas.addEventListener('mousedown', onPointerDown);
+canvas.addEventListener('mousemove', onPointerMove);
+canvas.addEventListener('mouseup', onPointerUp);
+canvas.addEventListener('mouseleave', onPointerUp);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onPointerDown(e); }, { passive: false });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); onPointerMove(e); }, { passive: false });
+canvas.addEventListener('touchend', onPointerUp);
+
+// ─────────────────────────────────────────────
+// TEXT TOOL
+// ─────────────────────────────────────────────
+const textOverlay = document.getElementById('text-input-overlay');
+const textField = document.getElementById('text-input-field');
+let textPos = { x: 0, y: 0 };
+
+function handleTextClick(e) {
+  const { x, y } = getPos(e);
+  textPos = { x, y };
+  textOverlay.style.display = 'block';
+  textOverlay.style.left = x + 'px';
+  textOverlay.style.top = (y - 28) + 'px';
+  textField.style.color = currentColor;
+  textField.style.fontSize = Math.max(14, currentSize * 4) + 'px';
+  textField.value = '';
+  textField.focus();
+}
+
+textField.addEventListener('keydown', e => {
+  if (e.key === 'Enter') commitText();
+  if (e.key === 'Escape') { textOverlay.style.display = 'none'; }
+});
+textField.addEventListener('blur', commitText);
+
+function commitText() {
+  const txt = textField.value.trim();
+  textOverlay.style.display = 'none';
+  if (!txt) return;
+  ctx.save();
+  ctx.font = `${Math.max(14, currentSize * 4)}px 'Instrument Serif', serif`;
+  ctx.fillStyle = currentColor;
+  ctx.fillText(txt, textPos.x, textPos.y);
+  ctx.restore();
+  // Save text stroke to Firebase
+  if (drawingsRef) {
+    const tId = Date.now() + '_txt_' + currentUser.id;
+    set(ref(db, `boards/${currentBoardId}/strokes/${tId}`), {
+      uid: currentUser.id, type: 'text',
+      text: txt, x: textPos.x, y: textPos.y,
+      color: currentColor, size: currentSize, t: Date.now(), final: true
+    });
+  }
+  scheduleAutoSave();
+}
+
+// ─────────────────────────────────────────────
+// REMOTE STROKES
+// ─────────────────────────────────────────────
+function listenStrokes(boardId) {
+  if (boardsListeners[boardId]) return;
+  const sRef = ref(db, `boards/${boardId}/strokes`);
+  const seen = new Set();
+
+  onChildAdded(sRef, snap => {
+    const d = snap.val();
+    if (!d || d.uid === currentUser.id || seen.has(snap.key)) return;
+    seen.add(snap.key);
+    renderRemoteStroke(d);
+  });
+  onChildChanged(sRef, snap => {
+    const d = snap.val();
+    if (!d || d.uid === currentUser.id) return;
+    // For incremental updates re-render only new segs (we redraw all on load anyway)
+    renderRemoteStroke(d);
+  });
+
+  boardsListeners[boardId] = sRef;
+}
+
+let remoteStrokeState = {}; // track last rendered seg count per strokeId
+
+function renderRemoteStroke(d) {
+  if (!d) return;
+  if (d.type === 'text') {
+    ctx.save();
+    ctx.font = `${Math.max(14, d.size * 4)}px 'Instrument Serif', serif`;
+    ctx.fillStyle = d.color;
+    ctx.fillText(d.text, d.x, d.y);
+    ctx.restore();
+    return;
+  }
+  const segs = d.segs || [];
+  const key = d.uid + '_' + (d.t || 0);
+  const from = remoteStrokeState[key] || 0;
+  for (let i = from; i < segs.length; i++) {
+    const s = segs[i];
+    applySegment(s.x0, s.y0, s.x1, s.y1, d.color, d.size, d.tool);
+  }
+  remoteStrokeState[key] = segs.length;
+}
+
+// ─────────────────────────────────────────────
+// REMOTE CURSORS
+// ─────────────────────────────────────────────
+function listenCursors(boardId) {
+  const cRef = ref(db, `boards/${boardId}/cursors`);
+  onChildAdded(cRef, updateRemoteCursor);
+  onChildChanged(cRef, updateRemoteCursor);
+  onChildRemoved(cRef, snap => {
+    const el = document.getElementById('cursor-' + snap.key);
+    if (el) el.remove();
+    delete remoteCursors[snap.key];
+  });
+}
+
+function updateRemoteCursor(snap) {
+  if (snap.key === currentUser.id) return;
+  const d = snap.val();
+  if (!d) return;
+  let el = document.getElementById('cursor-' + snap.key);
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'remote-cursor';
+    el.id = 'cursor-' + snap.key;
+    el.innerHTML = `
+      <svg viewBox="0 0 20 20" fill="${d.color}" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 2l12 7-6 1-3 6z"/>
+      </svg>
+      <div class="remote-cursor-label" style="background:${d.color}">${d.name || 'Anonym'}</div>`;
+    wrap.appendChild(el);
+    remoteCursors[snap.key] = el;
+  }
+  el.style.left = d.x + 'px';
+  el.style.top = d.y + 'px';
+}
+
+// ─────────────────────────────────────────────
+// USER COUNT / PRESENCE
+// ─────────────────────────────────────────────
+function setupPresence(boardId) {
+  if (presenceRef) { remove(presenceRef); }
+  presenceRef = ref(db, `boards/${boardId}/presence/${currentUser.id}`);
+  set(presenceRef, { name: currentUser.name, color: currentUser.color, online: true, t: Date.now() });
+
+  const allPresence = ref(db, `boards/${boardId}/presence`);
+  onValue(allPresence, snap => {
+    const data = snap.val() || {};
+    const now = Date.now();
+    const active = Object.values(data).filter(u => u.online && (now - (u.t||0)) < 15000);
+    document.getElementById('user-count').textContent = active.length + (active.length === 1 ? ' aktiv' : ' aktiv');
+  });
+
+  // Keep-alive ping every 10s
+  setInterval(() => {
+    if (presenceRef) set(presenceRef, { name: currentUser.name, color: currentUser.color, online: true, t: Date.now() });
+  }, 10000);
+
+  window.addEventListener('beforeunload', () => {
+    if (presenceRef) set(presenceRef, { online: false });
+  });
+}
+
+// ─────────────────────────────────────────────
+// BOARDS MANAGEMENT
+// ─────────────────────────────────────────────
+function loadBoards() {
+  const bRef = ref(db, 'boardsMeta');
+  onValue(bRef, snap => {
+    const data = snap.val() || {};
+    const list = Object.entries(data)
+      .map(([id, v]) => ({ id, ...v }))
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+    const el = document.getElementById('boards-list');
+    el.innerHTML = '';
+    list.forEach(b => {
+      const item = document.createElement('div');
+      item.className = 'board-item' + (b.id === currentBoardId ? ' active' : '');
+      item.innerHTML = `
+        <div class="board-item-name">${escHtml(b.name || 'Unbenannt')}</div>
+        <div class="board-item-time">${timeAgo(b.updatedAt)}</div>
+        <button class="board-item-del" onclick="deleteBoard('${b.id}',event)" title="Löschen">×</button>`;
+      item.addEventListener('click', () => switchBoard(b.id, b.name));
+      el.appendChild(item);
+    });
+
+    if (list.length === 0) newBoard();
+  });
+}
+
+window.newBoard = async function() {
+  const bRef = push(ref(db, 'boardsMeta'));
+  const name = 'Board ' + new Date().toLocaleDateString('de-DE');
+  await set(bRef, { name, createdAt: Date.now(), updatedAt: Date.now() });
+  switchBoard(bRef.key, name);
+};
+
+window.deleteBoard = async function(id, e) {
+  e.stopPropagation();
+  if (!confirm('Board wirklich löschen?')) return;
+  await remove(ref(db, `boardsMeta/${id}`));
+  await remove(ref(db, `boards/${id}`));
+  if (id === currentBoardId) { currentBoardId = null; newBoard(); }
+};
+
+async function switchBoard(id, name) {
+  // Detach old listeners
+  if (currentBoardId && boardsListeners[currentBoardId]) {
+    off(boardsListeners[currentBoardId]);
+    delete boardsListeners[currentBoardId];
+  }
+  if (currentBoardId) {
+    off(ref(db, `boards/${currentBoardId}/cursors`));
+    off(ref(db, `boards/${currentBoardId}/presence`));
+  }
+
+  currentBoardId = id;
+  remoteStrokeState = {};
+  document.getElementById('board-name').value = name || 'Unbenannt';
+  document.querySelectorAll('.board-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.board-item').forEach(el => {
+    if (el.querySelector('.board-item-name')?.textContent === (name || 'Unbenannt')) el.classList.add('active');
+  });
+
+  // Clear canvas and load strokes
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const strokesSnap = await get(ref(db, `boards/${id}/strokes`));
+  if (strokesSnap.exists()) {
+    const strokes = strokesSnap.val();
+    Object.values(strokes).sort((a,b) => (a.t||0)-(b.t||0)).forEach(renderRemoteStroke);
+  }
+
+  listenStrokes(id);
+  listenCursors(id);
+  setupPresence(id);
+  cursorRef = ref(db, `boards/${id}/cursors/${currentUser.id}`);
+}
+
+// ─────────────────────────────────────────────
+// BOARD NAME
+// ─────────────────────────────────────────────
+document.getElementById('board-name').addEventListener('input', e => {
+  if (!currentBoardId) return;
+  setSaveStatus('saving');
+  clearTimeout(window._nameTimer);
+  window._nameTimer = setTimeout(() => {
+    set(ref(db, `boardsMeta/${currentBoardId}/name`), e.target.value);
+    setSaveStatus('saved');
+  }, 800);
+});
+
+// ─────────────────────────────────────────────
+// AUTO SAVE
+// ─────────────────────────────────────────────
+let saveTimer = null;
+function scheduleAutoSave() {
+  setSaveStatus('saving');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    if (currentBoardId) {
+      set(ref(db, `boardsMeta/${currentBoardId}/updatedAt`), Date.now());
+      setSaveStatus('saved');
+    }
+  }, 1200);
+}
+
+function setSaveStatus(s) {
+  const el = document.getElementById('save-status');
+  el.className = s;
+  el.textContent = s === 'saved' ? '✓ Gespeichert' : s === 'saving' ? '… Speichert' : s === 'error' ? '! Fehler' : '—';
+}
+
+// ─────────────────────────────────────────────
+// CLEAR & EXPORT
+// ─────────────────────────────────────────────
+window.clearCanvas = async function() {
+  if (!confirm('Canvas wirklich leeren?')) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (currentBoardId) {
+    await remove(ref(db, `boards/${currentBoardId}/strokes`));
+    scheduleAutoSave();
+  }
+};
+
+window.exportPNG = function() {
+  const a = document.createElement('a');
+  a.download = (document.getElementById('board-name').value || 'board') + '.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  showToast('PNG gespeichert ✓');
+};
+
+// ─────────────────────────────────────────────
+// BOARDS PANEL TOGGLE
+// ─────────────────────────────────────────────
+window.toggleBoards = function() {
+  document.getElementById('boards-panel').classList.toggle('collapsed');
+};
+
+// ─────────────────────────────────────────────
+// START APP (from modal)
+// ─────────────────────────────────────────────
+window.startApp = async function() {
+  const dbUrl = document.getElementById('cfg-dburl').value.trim();
+  const apiKey = document.getElementById('cfg-apikey').value.trim();
+  const projectId = document.getElementById('cfg-projectid').value.trim();
+  const uname = document.getElementById('cfg-username').value.trim() || 'Anonym';
+  const errEl = document.getElementById('setup-error');
+  const btn = document.getElementById('start-btn');
+
+  if (!dbUrl || !apiKey || !projectId) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Bitte alle Felder ausfüllen.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '… Verbinde';
+  errEl.style.display = 'none';
+
+  try {
+    app = initializeApp({ apiKey, databaseURL: dbUrl, projectId });
+    db = getDatabase(app);
+
+    // Test connection
+    await get(ref(db, '.info/connected'));
+
+    // Save config to localStorage for next time
+    localStorage.setItem('skizze_cfg', JSON.stringify({ dbUrl, apiKey, projectId }));
+    localStorage.setItem('skizze_name', uname);
+
+    currentUser.id = 'u_' + Math.random().toString(36).slice(2, 9);
+    currentUser.name = uname;
+    currentUser.color = USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)];
+
+    document.getElementById('setup-modal').style.display = 'none';
+    resizeCanvas();
+    loadBoards();
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = '→ Loslegen';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Verbindung fehlgeschlagen: ' + err.message;
+  }
+};
+
+// Pre-fill saved config
+const saved = localStorage.getItem('skizze_cfg');
+if (saved) {
+  try {
+    const c = JSON.parse(saved);
+    document.getElementById('cfg-dburl').value = c.dbUrl || '';
+    document.getElementById('cfg-apikey').value = c.apiKey || '';
+    document.getElementById('cfg-projectid').value = c.projectId || '';
+  } catch(e) {}
+}
+const savedName = localStorage.getItem('skizze_name');
+if (savedName) document.getElementById('cfg-username').value = savedName;
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function timeAgo(ts) {
+  if (!ts) return '';
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return 'jetzt';
+  if (s < 3600) return Math.floor(s/60) + ' min';
+  if (s < 86400) return Math.floor(s/3600) + ' h';
+  return Math.floor(s/86400) + ' d';
+}
+
+function escHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
