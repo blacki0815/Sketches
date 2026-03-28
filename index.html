@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raffis&NelisZeichnungen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ───────────────────────── HOME SCREEN ───────────────────────── -->
+  <div id="home-screen" class="screen active">
+    <div class="home-bg-grid"></div>
+    <div class="home-content">
+      <div class="logo">
+        <span class="logo-icon">✏</span>
+        <h1>Raffis&Nelis<span class="accent">Zeichnungen</span></h1>
+      </div>
+      <p class="tagline">Komm Neli, wir malen ein wenig was...</p>
+
+      <div class="home-card">
+        <div class="input-group">
+          <label for="username-input">Dein Name</label>
+          <input id="username-input" type="text" placeholder="z.B. Cornelia" maxlength="20" />
+        </div>
+        <div class="divider"><span>Board beitreten oder erstellen</span></div>
+        <div class="input-group">
+          <label for="board-code-input">Board-Code (leer lassen = neues Board)</label>
+          <input id="board-code-input" type="text" placeholder="z.B. abc123" maxlength="10" />
+        </div>
+        <button id="join-btn" class="btn-primary">Loslegen →</button>
+      </div>
+
+      <div id="saved-boards-section" class="saved-boards-section hidden">
+        <h3>Deine gespeicherten Boards</h3>
+        <div id="saved-boards-list" class="boards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───────────────────────── CANVAS SCREEN ───────────────────────── -->
+  <div id="canvas-screen" class="screen">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="back-btn" class="icon-btn" title="Zurück">←</button>
+        <span class="board-title-label">Board: <strong id="board-code-display">–</strong></span>
+      </div>
+
+      <div class="topbar-center toolbar">
+        <!-- Undo / Redo -->
+        <div class="tool-group">
+          <button class="icon-btn" id="undo-btn" title="Rückgängig (Strg+Z)">↩</button>
+          <button class="icon-btn" id="redo-btn" title="Wiederholen (Strg+Y)">↪</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Werkzeuge -->
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="pen"    title="Stift">✏</button>
+          <button class="tool-btn"        data-tool="eraser" title="Radierer">◻</button>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Stiftgröße -->
+        <div class="tool-group size-group">
+          <label class="size-label">Größe</label>
+          <input id="size-slider" type="range" min="1" max="40" value="4" />
+          <span id="size-display">4</span>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Farben -->
+        <div class="tool-group color-group">
+          <div class="color-swatch active" data-color="#e8e8f0" style="background:#e8e8f0"></div>
+          <div class="color-swatch" data-color="#e63946" style="background:#e63946"></div>
+          <div class="color-swatch" data-color="#2a9d8f" style="background:#2a9d8f"></div>
+          <div class="color-swatch" data-color="#f4a261" style="background:#f4a261"></div>
+          <div class="color-swatch" data-color="#457b9d" style="background:#457b9d"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background:#ffffff; border:2px solid #aaa"></div>
+          <input id="custom-color" type="color" value="#e8e8f0" title="Eigene Farbe" />
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- Zoom -->
+        <div class="tool-group zoom-group">
+          <button class="icon-btn" id="zoom-out-btn" title="Rauszoomen">−</button>
+          <span id="zoom-display">100%</span>
+          <button class="icon-btn" id="zoom-in-btn"  title="Reinzoomen">+</button>
+          <button class="icon-btn" id="zoom-reset-btn" title="Zoom zurücksetzen">⊙</button>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div id="users-online" class="users-online"></div>
+        <button id="copy-link-btn" class="btn-secondary">🔗 Teilen</button>
+        <button id="export-btn"    class="btn-secondary">📥 PNG</button>
+        <button id="save-btn"      class="btn-primary">💾 Speichern</button>
+        <button id="clear-btn"     class="btn-danger">🗑 Leeren</button>
+      </div>
+    </header>
+
+    <!-- CANVAS WRAPPER -->
+    <div id="canvas-wrapper">
+      <canvas id="main-canvas"></canvas>
+      <div id="cursors-layer"></div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
