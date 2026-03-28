@@ -3,35 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Raffis&NelisZeichnungen</title>
+  <title>SkizzenGemeinsam</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- ───────────────────────── HOME SCREEN ───────────────────────── -->
+  <!-- HOME -->
   <div id="home-screen" class="screen active">
     <div class="home-bg-grid"></div>
     <div class="home-content">
       <div class="logo">
-        <h1>Raffis&Nelis<span class="accent">Zeichnungen</span></h1>
+        <i data-lucide="pencil-line" class="logo-icon-svg"></i>
+        <h1>Skizzen<span class="accent">Gemeinsam</span></h1>
       </div>
-      <p class="tagline">Komm Neli, wir malen ein wenig was...</p>
-
+      <p class="tagline">Zeichne in Echtzeit – gemeinsam.</p>
       <div class="home-card">
         <div class="input-group">
           <label for="username-input">Dein Name</label>
-          <input id="username-input" type="text" placeholder="z.B. Cornelia" maxlength="20" />
+          <input id="username-input" type="text" placeholder="z.B. Mia" maxlength="20" />
         </div>
         <div class="divider"><span>Board beitreten oder erstellen</span></div>
         <div class="input-group">
           <label for="board-code-input">Board-Code (leer lassen = neues Board)</label>
           <input id="board-code-input" type="text" placeholder="z.B. abc123" maxlength="10" />
         </div>
-        <button id="join-btn" class="btn-primary">Loslegen →</button>
+        <button id="join-btn" class="btn-primary">Loslegen</button>
       </div>
-
       <div id="saved-boards-section" class="saved-boards-section hidden">
         <h3>Deine gespeicherten Boards</h3>
         <div id="saved-boards-list" class="boards-grid"></div>
@@ -39,77 +39,137 @@
     </div>
   </div>
 
-  <!-- ───────────────────────── CANVAS SCREEN ───────────────────────── -->
+  <!-- CANVAS SCREEN -->
   <div id="canvas-screen" class="screen">
-
-    <!-- TOP BAR -->
     <header class="topbar">
-      <div class="topbar-left">
-        <button id="back-btn" class="icon-btn" title="Zurück">←</button>
-        <span class="board-title-label">Board: <strong id="board-code-display">–</strong></span>
+
+      <!-- NAV LEFT -->
+      <div class="topbar-section topbar-left">
+        <button id="back-btn" class="tb-btn" title="Zurück">
+          <i data-lucide="arrow-left"></i>
+        </button>
+        <span class="board-label">
+          <i data-lucide="layout-grid" class="board-label-icon"></i>
+          <strong id="board-code-display">–</strong>
+        </span>
       </div>
 
-      <div class="topbar-center toolbar">
-        <!-- Undo / Redo -->
-        <div class="tool-group">
-          <button class="icon-btn" id="undo-btn" title="Rückgängig (Strg+Z)">↩</button>
-          <button class="icon-btn" id="redo-btn" title="Wiederholen (Strg+Y)">↪</button>
-        </div>
+      <div class="topbar-divider"></div>
 
-        <div class="separator"></div>
+      <!-- HISTORY -->
+      <div class="topbar-section">
+        <button id="undo-btn" class="tb-btn" title="Rückgängig (Strg+Z)"><i data-lucide="undo-2"></i></button>
+        <button id="redo-btn" class="tb-btn" title="Wiederholen (Strg+Y)"><i data-lucide="redo-2"></i></button>
+      </div>
 
-        <!-- Werkzeuge -->
-        <div class="tool-group">
-          <button class="tool-btn active" data-tool="pen"    title="Stift">✏</button>
-          <button class="tool-btn"        data-tool="eraser" title="Radierer">◻</button>
-        </div>
+      <div class="topbar-divider"></div>
 
-        <div class="separator"></div>
-
-        <!-- Stiftgröße -->
-        <div class="tool-group size-group">
-          <label class="size-label">Größe</label>
-          <input id="size-slider" type="range" min="1" max="40" value="4" />
-          <span id="size-display">4</span>
-        </div>
-
-        <div class="separator"></div>
-
-        <!-- Farben -->
-        <div class="tool-group color-group">
-          <div class="color-swatch active" data-color="#e8e8f0" style="background:#e8e8f0"></div>
-          <div class="color-swatch" data-color="#e63946" style="background:#e63946"></div>
-          <div class="color-swatch" data-color="#2a9d8f" style="background:#2a9d8f"></div>
-          <div class="color-swatch" data-color="#f4a261" style="background:#f4a261"></div>
-          <div class="color-swatch" data-color="#457b9d" style="background:#457b9d"></div>
-          <div class="color-swatch" data-color="#ffffff" style="background:#ffffff; border:2px solid #aaa"></div>
-          <input id="custom-color" type="color" value="#e8e8f0" title="Eigene Farbe" />
-        </div>
-
-        <div class="separator"></div>
-
-        <!-- Zoom -->
-        <div class="tool-group zoom-group">
-          <button class="icon-btn" id="zoom-out-btn" title="Rauszoomen">−</button>
-          <span id="zoom-display">100%</span>
-          <button class="icon-btn" id="zoom-in-btn"  title="Reinzoomen">+</button>
-          <button class="icon-btn" id="zoom-reset-btn" title="Zoom zurücksetzen">⊙</button>
+      <!-- TOOLS -->
+      <div class="topbar-section" id="tool-group">
+        <button class="tb-btn tool-btn active" data-tool="pen" title="Stift">
+          <i data-lucide="pencil"></i>
+        </button>
+        <button class="tb-btn tool-btn" data-tool="eraser" title="Radierer">
+          <i data-lucide="eraser"></i>
+        </button>
+        <button class="tb-btn tool-btn" data-tool="text" title="Text">
+          <i data-lucide="type"></i>
+        </button>
+        <!-- Shapes -->
+        <div class="dropdown-wrap">
+          <button class="tb-btn tool-btn" id="shape-trigger" data-tool="shape" title="Form">
+            <i data-lucide="shapes"></i>
+            <i data-lucide="chevron-down" class="chevron"></i>
+          </button>
+          <div class="dropdown" id="shape-dropdown">
+            <button class="dropdown-item" data-shape="line"><i data-lucide="minus"></i><span>Linie</span></button>
+            <button class="dropdown-item" data-shape="rect"><i data-lucide="square"></i><span>Rechteck</span></button>
+            <button class="dropdown-item" data-shape="ellipse"><i data-lucide="circle"></i><span>Ellipse</span></button>
+            <button class="dropdown-item" data-shape="triangle"><i data-lucide="triangle"></i><span>Dreieck</span></button>
+            <button class="dropdown-item" data-shape="arrow"><i data-lucide="move-right"></i><span>Pfeil</span></button>
+          </div>
         </div>
       </div>
 
-      <div class="topbar-right">
+      <div class="topbar-divider"></div>
+
+      <!-- SIZE -->
+      <div class="topbar-section size-section">
+        <i data-lucide="minus" class="size-icon"></i>
+        <input id="size-slider" type="range" min="1" max="40" value="4" title="Pinselgröße" />
+        <i data-lucide="plus" class="size-icon"></i>
+        <span id="size-display" class="size-val">4px</span>
+      </div>
+
+      <div class="topbar-divider"></div>
+
+      <!-- COLORS -->
+      <div class="topbar-section color-section">
+        <div class="color-swatch active" data-color="#e8e8f0" style="background:#e8e8f0" title="Hell"></div>
+        <div class="color-swatch" data-color="#e63946" style="background:#e63946" title="Rot"></div>
+        <div class="color-swatch" data-color="#2a9d8f" style="background:#2a9d8f" title="Türkis"></div>
+        <div class="color-swatch" data-color="#f4a261" style="background:#f4a261" title="Orange"></div>
+        <div class="color-swatch" data-color="#457b9d" style="background:#457b9d" title="Blau"></div>
+        <div class="color-swatch" data-color="#e9c46a" style="background:#e9c46a" title="Gelb"></div>
+        <label class="color-custom-wrap" title="Eigene Farbe">
+          <i data-lucide="pipette"></i>
+          <input id="custom-color" type="color" value="#e8e8f0" />
+        </label>
+      </div>
+
+      <div class="topbar-divider"></div>
+
+      <!-- BACKGROUND -->
+      <div class="topbar-section">
+        <div class="dropdown-wrap">
+          <button class="tb-btn" id="bg-trigger" title="Hintergrund">
+            <i data-lucide="layers"></i>
+            <i data-lucide="chevron-down" class="chevron"></i>
+          </button>
+          <div class="dropdown" id="bg-dropdown">
+            <button class="dropdown-item bg-item" data-bg="dark">
+              <span class="bg-preview bg-dark"></span><span>Dunkel</span>
+            </button>
+            <button class="dropdown-item bg-item" data-bg="light">
+              <span class="bg-preview bg-light"></span><span>Hell</span>
+            </button>
+            <button class="dropdown-item bg-item" data-bg="grid">
+              <span class="bg-preview bg-grid-prev"></span><span>Gitternetz</span>
+            </button>
+            <button class="dropdown-item bg-item" data-bg="dots">
+              <span class="bg-preview bg-dots-prev"></span><span>Punkte</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="topbar-divider"></div>
+
+      <!-- ZOOM -->
+      <div class="topbar-section zoom-section">
+        <button id="zoom-out-btn"   class="tb-btn" title="Rauszoomen"><i data-lucide="zoom-out"></i></button>
+        <span id="zoom-display" class="zoom-val">100%</span>
+        <button id="zoom-in-btn"    class="tb-btn" title="Reinzoomen"><i data-lucide="zoom-in"></i></button>
+        <button id="zoom-reset-btn" class="tb-btn" title="Zoom zurücksetzen"><i data-lucide="scan"></i></button>
+      </div>
+
+      <div class="topbar-spacer"></div>
+
+      <!-- RIGHT ACTIONS -->
+      <div class="topbar-section topbar-right">
         <div id="users-online" class="users-online"></div>
-        <button id="copy-link-btn" class="btn-secondary">🔗 Teilen</button>
-        <button id="export-btn"    class="btn-secondary">📥 PNG</button>
-        <button id="save-btn"      class="btn-primary">💾 Speichern</button>
-        <button id="clear-btn"     class="btn-danger">🗑 Leeren</button>
+        <button id="copy-link-btn" class="tb-btn tb-action"          title="Link kopieren"><i data-lucide="link"></i></button>
+        <button id="export-btn"    class="tb-btn tb-action"          title="Als PNG exportieren"><i data-lucide="image-down"></i></button>
+        <button id="save-btn"      class="tb-btn tb-action tb-save"  title="Board speichern"><i data-lucide="save"></i></button>
+        <button id="clear-btn"     class="tb-btn tb-action tb-danger" title="Board leeren"><i data-lucide="trash-2"></i></button>
       </div>
+
     </header>
 
-    <!-- CANVAS WRAPPER -->
     <div id="canvas-wrapper">
       <canvas id="main-canvas"></canvas>
       <div id="cursors-layer"></div>
+      <textarea id="text-input" class="text-input hidden" rows="1" placeholder="Text eingeben…"></textarea>
     </div>
 
     <div id="toast" class="toast hidden"></div>
@@ -117,5 +177,6 @@
 
   <script type="module" src="firebase.js"></script>
   <script type="module" src="app.js"></script>
+  <script>document.addEventListener('DOMContentLoaded', () => lucide.createIcons());</script>
 </body>
 </html>
