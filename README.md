@@ -1,4 +1,4 @@
-# ✏ SkizzenGemeinsam
+# SkizzenGemeinsam
 
 > A real-time collaborative drawing app — draw together, instantly.
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 🖼 Features
+## Features
 
 - **Real-time collaboration** — multiple users draw on the same board simultaneously, with live cursor tracking
 - **Smooth drawing** — quadratic spline interpolation + moving-average smoothing for natural-looking strokes
@@ -24,7 +24,7 @@
 
 ---
 
-## 🗂 Project Structure
+## Project Structure
 
 ```
 skizzengemeinsam/
@@ -38,7 +38,7 @@ skizzengemeinsam/
 
 ---
 
-## 🚀 Deployment (GitHub Pages)
+## Deployment (GitHub Pages)
 
 ### 1. Clone or fork this repository
 
@@ -70,7 +70,7 @@ https://YOUR_USERNAME.github.io/skizzengemeinsam/
 
 ---
 
-## 🔥 Firebase Setup
+## Firebase Setup
 
 ### Required services
 
@@ -136,7 +136,7 @@ This prevents the Firebase project from being used by other websites.
 
 ---
 
-## 🗄 Database Schema
+## Database Schema
 
 ```
 boards/
@@ -169,7 +169,7 @@ saved/
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 |---|---|
@@ -180,7 +180,7 @@ saved/
 
 ---
 
-## 🔒 Security Notes
+## Security Notes
 
 The Firebase API key is visible in `config.js` — **this is intentional and normal for Firebase web apps**. The key alone does not grant unrestricted access. Protection is enforced through:
 
@@ -191,7 +191,7 @@ For more information see the [official Firebase documentation on API keys](https
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -205,6 +205,6 @@ No build step. No npm. No framework. Just files.
 
 ---
 
-## 📄 License
+## License
 
 MIT — do whatever you want with it.
