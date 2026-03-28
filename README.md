@@ -1,4 +1,4 @@
-# SkizzenGemeinsam
+# SketchesTogether
 
 > A real-time collaborative drawing app — draw together, instantly.
 
